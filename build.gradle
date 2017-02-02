@@ -22,10 +22,10 @@ task clean(type: Delete) {
     delete rootProject.buildDir
 }
 
-task _projectZip(type:Zip) {
-    description = 'Makes a zip file of your project that can be properly shared with others.'
+task _answerZip(type:Zip) {
+    description = 'Makes a single zip file containing all of the required files that you will submit for grading.'
     from projectDir
-    baseName = project.name
+    baseName = 'answer-files'
 
     include 'build.gradle'
     include 'gradle.properties'
