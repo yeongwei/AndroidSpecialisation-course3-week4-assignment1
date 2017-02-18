@@ -175,8 +175,11 @@ public class MainActivity extends CustomLoggingActivityBase implements ServiceRe
      */
     private void startDownload(Uri url) {
         // Create an intent to download the YouTube Atom Feed for CNN.
-        // TODO -- you fill in here.
-
+        Intent intent = DownloadAtomFeedService.makeIntent(
+                this.getApplicationContext(),
+                1001,
+                Uri.parse(MainActivity.CNN_YOUTUBE_ATOM_FEED_URL),
+                mServiceResultHandler);
 
         Log.d(TAG,
                 "starting the DownloadAtomFeedService for "
@@ -187,8 +190,7 @@ public class MainActivity extends CustomLoggingActivityBase implements ServiceRe
         viewFlipper.setDisplayedChild(mProgressFlipperIndex);
 
         // call startService on that Intent.
-        // TODO -- you fill in here.
-
+        this.startService(intent);
     }
 
     /**
@@ -210,32 +212,40 @@ public class MainActivity extends CustomLoggingActivityBase implements ServiceRe
 
         // check if resultCode = Activity.RESULT_CANCELED, if it does, then call
         // handleDownloadFailure and return;
-        // TODO -- you fill in here.
+        if (resultCode == Activity.RESULT_CANCELED) {
+            this.handleDownloadFailure(data);
+            return;
+        }
 
+        String text = "";
 
         // Otherwise **resultCode == Activity.RESULT_OK**
         // Handle a successful download.
         // Log to both the on-screen & logcat logs the requestUri from the data.
-        // TODO -- you fill in here.
-
+        if (resultCode == Activity.RESULT_OK) {
+            text = "Successfully downloaded from " + data.getString("FEED_URL") + ".";
+            Log.i(MainActivity.TAG, text);
+            Toast.makeText(this, text, Toast.LENGTH_LONG).show();
+        }
 
         // Get the Entries from the 'data' and store them.
         // Log to the on-screen and logcat logs the number of entries downloaded.
-        // TODO -- you fill in here.
-
+        final ArrayList<Entry> entries = data.getParcelableArrayList("ENTRY_ARRAY_KEY");
+        text = "Downloaded " + entries.size() + " entries.";
+        Log.i(MainActivity.TAG, text);
+        Toast.makeText(this, text, Toast.LENGTH_LONG).show();
 
         // Update the RecyclerView fragment via calling updateEntries(...) on it.
-        // TODO -- you fill in here.
+        this.updateEntriesInterface.updateEntries(entries);
 
         Thread thread = new Thread() {
             @Override
             public void run() {
                 ProviderUtils.deleteProviderContents(MainActivity.this);
-                ProviderUtils.addEntriesToProvider(MainActivity.this, newEntries);
+                ProviderUtils.addEntriesToProvider(MainActivity.this, entries);
             }
         };
         thread.start();
-
     }
 
     /**
@@ -271,8 +281,7 @@ public class MainActivity extends CustomLoggingActivityBase implements ServiceRe
 
                 // call startDownload(...) with the parsed Uri version of
                 // CNN_YOUTUBE_ATOM_FEED_URL
-                // TODO -- you fill in here.
-
+                startDownload(Uri.parse(MainActivity.CNN_YOUTUBE_ATOM_FEED_URL));
             }
         });
     }

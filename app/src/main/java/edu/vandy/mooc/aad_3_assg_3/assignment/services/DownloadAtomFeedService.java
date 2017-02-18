@@ -89,8 +89,13 @@ public class DownloadAtomFeedService extends IntentService {
         // intent, (3) creating and putting a Messenger as an "extra"
         // to the intent so the DownloadAtomFeedService can send the
         // Entry Object back to the Calling Activity
-        // TODO -- you fill in here.
-
+        Intent intent = new Intent();
+        intent.setClassName(context, DownloadAtomFeedService.class.getName());
+        intent.setData(url);
+        intent.putExtra(DownloadAtomFeedService.REQUEST_CODE, requestCode);
+        Messenger messenger = new Messenger(downloadHandler);
+        intent.putExtra(DownloadAtomFeedService.MESSENGER_KEY, messenger);
+        return intent;
     }
 
     /**
@@ -102,8 +107,7 @@ public class DownloadAtomFeedService extends IntentService {
      */
     public static int getResultCode(Message message) {
         // Check to see if the download succeeded.
-        // TODO -- you fill in here.
-
+        return message.arg1;
     }
 
     /**
@@ -116,22 +120,18 @@ public class DownloadAtomFeedService extends IntentService {
     public static Uri getRequestUri(Message message) {
         // Extract the data from Message, which is in the form of a
         // Bundle that can be passed across processes.
-        // TODO -- you fill in here.
-
+        Bundle data = message.getData();
 
         // call getRequestUri(Bundle) on the data bundle and return the Uri it returns.
-        // TODO -- you fill in here.
-
+        return DownloadAtomFeedService.getRequestUri(data);
     }
 
     public static Uri getRequestUri(Bundle data) {
         // use 'FEED_URL' to extract the string representation of the Uri from the Message
-        // TODO -- you fill in here.
-
+        String url = data.getString(DownloadAtomFeedService.FEED_URL);
 
         // Parse the String of the url to get a Uri and return it.
-        // TODO -- you fill in here.
-
+        return Uri.parse(url);
     }
 
 
@@ -145,12 +145,10 @@ public class DownloadAtomFeedService extends IntentService {
     public static int getRequestCode(Message message) {
         // Extract the data from Message, which is in the form of a
         // Bundle that can be passed across processes.
-        // TODO -- you fill in here.
-
+        Bundle data = message.getData();
 
         // Extract the request code and return it.
-        // TODO -- you fill in here.
-
+        return data.getInt(DownloadAtomFeedService.REQUEST_CODE);
     }
 
     /**
@@ -192,26 +190,21 @@ public class DownloadAtomFeedService extends IntentService {
     @Override
     public void onHandleIntent(Intent intent) {
         // Get the URL associated with the Intent data.
-        // TODO -- you fill in here.
-
+        Uri uri = intent.getData();
 
         // Download the requested YouTube Atom Feed.
-        // TODO -- you fill in here.
-
+        ArrayList<Entry> feeds = (ArrayList<Entry>) this.downloadAtomFeed(uri.toString());
 
         // Extract the request code.
-        // TODO -- you fill in here.
-
+        int requestCode = intent.getIntExtra(DownloadAtomFeedService.REQUEST_CODE, -1); // Important
 
         // Extract the Messenger stored as an extra in the
         // intent under the key MESSENGER_KEY.
-        // TODO -- you fill in here.
-
+        Messenger messenger = intent.getParcelableExtra(DownloadAtomFeedService.MESSENGER_KEY);
 
         // Send the YouTube Atom Feed Entries back to the
         // MainActivity via the messenger.
-        // TODO -- you fill in here.
-
+        this.sendEntries(messenger, feeds, uri, requestCode);
     }
 
     /**
@@ -222,14 +215,11 @@ public class DownloadAtomFeedService extends IntentService {
                              Uri url,
                              int requestCode) {
         // Call the makeReplyMessage() factory method to create Message.
-        // TODO -- you fill in here.
-
+        Message message = this.makeReplyMessage(entries, url, requestCode);
 
         try {
             // Send the path to the image file back to the MainActivity.
-            // TODO -- you fill in here.
-
-
+            messenger.send(message);
         } catch (RemoteException e) {
             Log.e(getClass().getName(),
                     "Exception while sending reply message back to Activity.",
@@ -245,39 +235,35 @@ public class DownloadAtomFeedService extends IntentService {
                                      Uri url,
                                      int requestCode) {
         // Get a new message via the obtain() factory method.
-        // TODO -- you fill in here.
-
+        Message message = Message.obtain();
 
         // Create a new Bundle named 'data' to handle the result.
-        // TODO -- you fill in here.
-
+        Bundle data = new Bundle();
 
         // use 'putParcelableArrayList(...)' to store the ArrayList of Entry(s) in the bundle.
-        // TODO -- you fill in here
-
+        data.putParcelableArrayList(DownloadAtomFeedService.ENTRY_ARRAY_KEY, entries);
 
         // Put the requestCode into the Bundle via the REQUEST_CODE key.
-        // TODO -- you fill in here.
-
+        data.putInt(DownloadAtomFeedService.REQUEST_CODE, requestCode);
 
         // Put the url as a string into the Bundle via the FEED_URL key.
-        // TODO -- you fill in here.
-
+        data.putString(DownloadAtomFeedService.FEED_URL, url.toString());
 
         // Set a field in the Message to indicate whether the download
         // succeeded or failed.
         // sucess: Activity.RESULT_OK
         // otherwise: Activity.RESULT_CANCELED
-        // TODO -- you fill in here.
-
+        if (requestCode == -1) {
+            message.arg1 = Activity.RESULT_CANCELED;
+        } else {
+            message.arg1 = Activity.RESULT_OK;
+        }
 
         // Set the Bundle to be the data in the message.
-        // TODO -- you fill in here.
-
+        message.setData(data);
 
         // return the message.
-        // TODO -- you fill in here.
-
+        return message;
     }
 
    /*
