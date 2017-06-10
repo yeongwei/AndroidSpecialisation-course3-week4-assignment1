@@ -49,6 +49,8 @@ public class ServiceResultHandler extends Handler {
     @Override
     public void handleMessage(Message message) {
         Log.d(TAG, "handleMessage() called back");
+        message.getData().setClassLoader(getClass().getClassLoader());
+        Log.d(TAG, "Configured ClassLoader for Bundle");
 
         final int requestCode = DownloadAtomFeedService.getRequestCode(message);
         final int resultCode = DownloadAtomFeedService.getResultCode(message);
